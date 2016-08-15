@@ -1,7 +1,6 @@
 package ru.sbt;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -53,21 +52,21 @@ public class PluginManager {
         plugin1.run();
         plugin1 = pluginManager.load(null, "ru.sbt.browser.Window");
         plugin1.run();
-        System.out.println("Encrypt class file :");
+        System.out.println("\n========================\nEncrypt class file :");
         EncryptedClassloader encryptedLoader = new EncryptedClassloader("key",
                 new File("C:\\Users\\usersPlugins"), ClassLoader.getSystemClassLoader());
-                //new File("C:\\Users\\usersPlugins\\ru\\sbt\\browser"), ClassLoader.getSystemClassLoader());
+        //new File("C:\\Users\\usersPlugins\\ru\\sbt\\browser"), ClassLoader.getSystemClassLoader());
         //encryptedLoader.encryptFile("Graphics.class");
         try {
             Plugin encryptedClass = (Plugin) encryptedLoader.findClass("Graphics").newInstance();
             System.out.println(encryptedClass.getClass().toString());
             encryptedClass.run();
         } catch (ClassNotFoundException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Class Not Found. Check file name or destination", e);
         } catch (InstantiationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Instantiation Exception", e);
         } catch (IllegalAccessException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Access exception. Check file access rights", e);
         }
     }
 }

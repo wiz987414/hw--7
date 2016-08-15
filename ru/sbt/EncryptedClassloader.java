@@ -4,26 +4,26 @@ import java.io.*;
 import java.nio.file.*;
 import java.util.Objects;
 
-public class EncryptedClassloader extends ClassLoader {
+class EncryptedClassloader extends ClassLoader {
     private final String key;
     private final File dir;
 
-    public EncryptedClassloader(String key, File dir, ClassLoader parent) {
+    EncryptedClassloader(String key, File dir, ClassLoader parent) {
         super(parent);
         this.key = key;
         this.dir = dir;
     }
 
     protected void encryptFile(String name) {
-        if (dir.isDirectory()) {
-            if (dir.listFiles() != null) {
-                for (File searchFile : dir.listFiles()) {
+        if (this.getDir().isDirectory()) {
+            if (this.getDir().listFiles() != null) {
+                for (File searchFile : this.getDir().listFiles()) {
                     if (Objects.equals(searchFile.getName(), name)) {
                         try {
-                            Path path = Paths.get(this.dir + "/" + name);
+                            Path path = Paths.get(this.getDir() + "/" + name);
                             byte[] fileBytes = Files.readAllBytes(path);
                             Files.delete(path);
-                            byte[] byteKey = this.key.getBytes();
+                            byte[] byteKey = this.getKey().getBytes();
                             for (int i = 0; i < fileBytes.length; i++) {
                                 fileBytes[i] = (byte) (fileBytes[i] + byteKey[0]);
                             }
@@ -41,14 +41,14 @@ public class EncryptedClassloader extends ClassLoader {
     @Override
     protected Class<?> findClass(String name) throws ClassNotFoundException {
         Class<?> decryptedClass = null;
-        if (dir.isDirectory()) {
-            if (dir.listFiles() != null) {
-                for (File searchFile : dir.listFiles()) {
+        if (this.getDir().isDirectory()) {
+            if (this.getDir().listFiles() != null) {
+                for (File searchFile : this.getDir().listFiles()) {
                     if (Objects.equals(searchFile.getName(), name + ".class")) {
                         try {
-                            Path path = Paths.get(this.dir + "/" + name + ".class");
+                            Path path = Paths.get(this.getDir() + "/" + name + ".class");
                             byte[] fileBytes = Files.readAllBytes(path);
-                            byte[] byteKey = this.key.getBytes();
+                            byte[] byteKey = this.getKey().getBytes();
                             for (int i = 0; i < fileBytes.length; i++) {
                                 fileBytes[i] = (byte) (fileBytes[i] - byteKey[0]);
                             }
@@ -61,5 +61,13 @@ public class EncryptedClassloader extends ClassLoader {
             } else throw new RuntimeException("Empty directory", new IllegalArgumentException());
         } else throw new RuntimeException("Directory non exists", new IllegalArgumentException());
         return decryptedClass;
+    }
+
+    private String getKey() {
+        return key;
+    }
+
+    private File getDir() {
+        return dir;
     }
 }
